@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAN4CK — Python Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0c0c0c;--surface:#141414;--surface2:#1a1a1a;
+  --border:#242424;--text:#c8c8c8;--muted:#555;--muted2:#888;--white:#efefef;
+  --red:#c0392b;--red2:#e74c3c;--red3:#ff6b6b;--red-dim:rgba(192,57,43,.14);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;line-height:1.7;overflow-x:hidden;cursor:none}
+
+/* CURSOR */
+#cur{position:fixed;width:5px;height:5px;background:var(--white);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:difference;transform:translate(-50%,-50%)}
+#cur-ring{position:fixed;width:28px;height:28px;border:1px solid rgba(255,255,255,.22);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .3s,height .3s,border-color .3s}
+#cur-ring.big{width:50px;height:50px;border-color:rgba(255,255,255,.45)}
+
+/* NOISE */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:200;opacity:.35;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E")}
+
+/* TICKER BOTTOM */
+.ticker-wrap{position:fixed;bottom:0;left:0;right:0;z-index:80;height:34px;background:rgba(12,12,12,.97);border-top:1px solid var(--border);overflow:hidden;display:flex;align-items:center}
+.ticker-track{display:flex;animation:tick 30s linear infinite;width:max-content}
+.ticker-track:hover{animation-play-state:paused}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ti{display:inline-flex;align-items:center;gap:8px;padding:0 24px;font-size:10px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;border-right:1px solid var(--border);height:34px;white-space:nowrap;transition:color .3s}
+.ti:hover{color:var(--muted2)}
+.td{width:4px;height:4px;background:var(--red);border-radius:50%;animation:tdp 2s ease-in-out infinite}
+@keyframes tdp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.5)}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:60;padding:18px 48px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to bottom,rgba(12,12,12,.97),transparent);backdrop-filter:blur(2px)}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;letter-spacing:.12em;color:var(--white);text-decoration:none}
+.nav-right{display:flex;gap:10px;align-items:center}
+.nav-btn{font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:.06em;transition:color .3s;border:1px solid var(--border);padding:5px 12px;display:flex;align-items:center;gap:7px}
+.nav-btn:hover{color:var(--white);border-color:#444}
+
+/* REVEAL — bidirectional */
+.rv{opacity:0;transition:opacity .75s cubic-bezier(.16,1,.3,1),transform .75s cubic-bezier(.16,1,.3,1)}
+.rv{transform:translateY(36px)}
+.rv.fl{transform:translateX(-56px)}
+.rv.fr{transform:translateX(56px)}
+.rv.fs{transform:scale(.93)}
+.rv.fb{transform:translateY(60px)}
+.rv.on{opacity:1;transform:none}
+.rv.off{opacity:0}
+.rv.off.fl{transform:translateX(-56px)}
+.rv.off.fr{transform:translateX(56px)}
+.rv.off.fs{transform:scale(.93)}
+.rv.off.fb{transform:translateY(60px)}
+.rv.off{transform:translateY(36px)}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 48px 80px;position:relative;overflow:hidden}
+.hero-bg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(90px,20vw,300px);color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.032);letter-spacing:-.02em;white-space:nowrap;pointer-events:none;user-select:none}
+.hero-ey{font-size:10px;letter-spacing:.35em;color:var(--muted);text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:14px;animation:fu 1s cubic-bezier(.16,1,.3,1) .2s both}
+.hero-ey::before{content:'';width:36px;height:1px;background:var(--muted)}
+.hero-name{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(56px,11vw,148px);line-height:.88;letter-spacing:-.035em;color:var(--white);margin-bottom:28px;animation:fu 1.1s cubic-bezier(.16,1,.3,1) .35s both}
+.hero-sub{font-size:13px;color:var(--muted);max-width:460px;line-height:1.85;animation:fu 1s cubic-bezier(.16,1,.3,1) .55s both}
+.hero-sub strong{color:var(--text);font-weight:400}
+@keyframes fu{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:none}}
+.hero-sc{position:absolute;bottom:82px;right:48px;display:flex;flex-direction:column;align-items:center;gap:10px;animation:fu 1s ease 1.3s both}
+.hero-sc span{writing-mode:vertical-rl;font-size:9px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
+.sc-line{width:1px;height:56px;background:linear-gradient(to bottom,var(--muted),transparent);animation:sl 2.2s ease-in-out infinite}
+@keyframes sl{0%{transform:scaleY(0);transform-origin:top;opacity:1}49%{transform:scaleY(1);transform-origin:top;opacity:1}50%{transform:scaleY(1);transform-origin:bottom;opacity:1}100%{transform:scaleY(0);transform-origin:bottom;opacity:0}}
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{content:attr(data-t);position:absolute;top:0;left:0;font-family:inherit;font-size:inherit;font-weight:inherit;letter-spacing:inherit;color:var(--white);width:100%}
+.glitch::before{animation:gc 7s steps(1) infinite;opacity:.28}
+.glitch::after{animation:gc 7s steps(1) .4s infinite reverse;opacity:.13}
+@keyframes gc{0%,100%{clip-path:inset(0 0 96% 0);transform:translateX(0)}15%{clip-path:inset(8% 0 88% 0);transform:translateX(-3px)}35%{clip-path:inset(35% 0 60% 0);transform:translateX(3px)}55%{clip-path:inset(65% 0 28% 0);transform:translateX(-2px)}75%{clip-path:inset(88% 0 6% 0);transform:translateX(2px)}}
+
+/* DIVIDER */
+.dv{height:1px;background:var(--border);margin:0 48px}
+
+/* SECTIONS */
+section{padding:110px 48px}
+.sec-lbl{font-size:10px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-bottom:72px;display:flex;align-items:center;gap:14px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ABOUT */
+.about-g{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start}
+.about-h{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(36px,5.5vw,74px);line-height:.95;color:var(--white);letter-spacing:-.03em}
+.about-h em{font-style:normal;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.26)}
+.about-b{font-size:14.5px;color:var(--text);line-height:1.95;border-left:1px solid var(--border);padding-left:28px}
+.about-b p{margin-bottom:18px}
+.about-b p:last-child{margin-bottom:0}
+.hl{color:var(--white)}
+
+/* CODE BLOCK */
+.code-wrap{margin-top:72px;display:grid;grid-template-columns:1fr 1.1fr;border:1px solid var(--border);background:var(--surface)}
+.code-info{padding:36px;border-right:1px solid var(--border)}
+.code-info h3{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:var(--white);margin-bottom:18px;letter-spacing:-.01em}
+.ir{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);font-size:12px}
+.ir:last-child{border-bottom:none}
+.ik{color:var(--muted);letter-spacing:.08em}
+.iv{color:var(--white)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;font-size:10px;letter-spacing:.1em;border:1px solid;text-transform:uppercase}
+.badge-r{border-color:var(--red);color:var(--red3);background:var(--red-dim)}
+.badge-g{border-color:var(--border);color:var(--muted2)}
+.code-term{background:#080808;position:relative;overflow:hidden}
+.term-bar{background:#111;padding:10px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--border)}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
+.term-title{font-size:10px;color:var(--muted);letter-spacing:.1em;margin-left:8px}
+.code-out{padding:18px 14px;font-size:11.5px;line-height:1.75;min-height:240px;overflow:hidden}
+.cl{display:flex;gap:9px;min-height:1.75em}
+.ln-n{color:#2a2a2a;user-select:none;min-width:18px;text-align:right;flex-shrink:0}
+.kw{color:#e06c75}.fn{color:#61afef}.str{color:#98c379}.cm{color:#4a5266;font-style:italic}.num{color:#d19a66}.var{color:#e5c07b}.op{color:#8899aa}
+.tcur{display:inline-block;width:6px;height:13px;background:var(--red3);vertical-align:middle;animation:bl .85s step-end infinite;flex-shrink:0}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--border);margin-top:72px}
+.stat{padding:34px 30px;border-right:1px solid var(--border);transition:background .3s}
+.stat:last-child{border-right:none}
+.stat:hover{background:var(--surface)}
+.sn{font-family:'Syne',sans-serif;font-weight:800;font-size:42px;color:var(--white);letter-spacing:-.04em;line-height:1;margin-bottom:6px}
+.sl{font-size:10px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
+
+/* LIBS MARQUEE */
+.libs-sec{padding:0;overflow:hidden;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center}
+.libs-mq{display:flex;animation:mq 24s linear infinite;width:max-content}
+.libs-mq:hover{animation-play-state:paused}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.lc{display:inline-flex;align-items:center;gap:10px;padding:0 28px;font-size:13px;letter-spacing:.05em;color:var(--muted2);border-right:1px solid var(--border);height:60px;white-space:nowrap;transition:color .3s,background .3s}
+.lc:hover{color:var(--white);background:rgba(255,255,255,.025)}
+.lc b{font-weight:400;color:var(--text)}
+.lc-icon{font-size:15px}
+
+/* SKILLS */
+.skills-sec{background:var(--surface)}
+.skills-list{display:flex;flex-direction:column}
+.sk-row{display:flex;justify-content:space-between;align-items:center;padding:25px 0;border-bottom:1px solid var(--border);transition:padding-left .35s ease;cursor:default}
+.sk-row:first-child{border-top:1px solid var(--border)}
+.sk-row:hover{padding-left:18px}
+.sk-n{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--white)}
+.sk-t{font-size:10px;letter-spacing:.18em;color:var(--muted);border:1px solid var(--border);padding:3px 10px;text-transform:uppercase}
+.sk-row.red .sk-n{color:var(--red3)}
+.sk-row.red .sk-t{border-color:var(--red);color:var(--red3)}
+
+/* QUOTE */
+.qt-sec{text-align:center;padding:140px 48px;position:relative;overflow:hidden}
+.qt-big{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(26px,5.5vw,66px);color:var(--white);letter-spacing:-.03em;line-height:1.1;max-width:860px;margin:0 auto}
+.qt-big .dim{color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.16)}
+
+/* CONTACT */
+.ct-sec{min-height:60vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.ct-in{display:flex;justify-content:space-between;align-items:flex-end}
+.ct-h{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(52px,10vw,138px);line-height:.88;letter-spacing:-.035em;color:var(--white)}
+.ct-links{display:flex;flex-direction:column;gap:10px;align-items:flex-end;padding-bottom:10px}
+.ct-a{font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.05em;display:flex;align-items:center;gap:10px;transition:color .3s,gap .3s;border:1px solid transparent;padding:7px 14px}
+.ct-a:hover{color:var(--white);gap:18px;border-color:var(--border)}
+.ct-a::after{content:'→';transition:transform .3s}
+.ct-a:hover::after{transform:translateX(4px)}
+
+/* FOOTER */
+footer{padding:26px 48px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;margin-bottom:34px}
+footer span{font-size:10px;color:var(--muted);letter-spacing:.1em}
+
+/* ORB */
+.orb{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.022) 0%,transparent 70%)}
+
+/* MOBILE */
+@media(max-width:768px){
+  nav{padding:16px 20px}
+  .hero{padding:0 20px 64px}
+  .hero-sc{display:none}
+  section{padding:80px 20px}
+  .dv{margin:0 20px}
+  .about-g{grid-template-columns:1fr;gap:40px}
+  .code-wrap{grid-template-columns:1fr}
+  .code-info{border-right:none;border-bottom:1px solid var(--border)}
+  .stats{grid-template-columns:1fr}
+  .stat{border-right:none;border-bottom:1px solid var(--border)}
+  .ct-in{flex-direction:column;gap:40px;align-items:flex-start}
+  .ct-links{align-items:flex-start}
+  footer{flex-direction:column;gap:6px;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
+<!-- TICKER BOTTOM -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="ttk"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">SAN4CK</a>
+  <div class="nav-right">
+    <a class="nav-btn" href="https://github.com/san4ckdvlp" target="_blank">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+      san4ckdvlp
+    </a>
+    <a class="nav-btn" href="https://t.me/san4ck" target="_blank">@san4ck</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="orb" style="width:700px;height:700px;top:-250px;right:-200px"></div>
+  <div class="hero-bg">SAN4CK</div>
+  <p class="hero-ey">Python Developer · AI Engineer · Video Editor</p>
+  <h1 class="hero-name"><div class="glitch" data-t="SAN4CK">SAN4CK</div></h1>
+  <p class="hero-sub">
+    <strong>Разрабатываю инструменты, боты и автоматизацию.</strong><br>
+    Взаимодействую с ИИ. Занимаюсь монтажом видео. Строю то, что работает.
+  </p>
+  <div class="hero-sc"><div class="sc-line"></div><span>scroll</span></div>
+</section>
+
+<div class="dv"></div>
+
+<!-- ABOUT -->
+<section>
+  <div class="sec-lbl">01 — О себе</div>
+  <div class="about-g">
+    <div class="rv fl">
+      <h2 class="about-h">Пишу код.<br><em>Режу</em><br>видео.</h2>
+    </div>
+    <div class="rv fr" style="transition-delay:.14s">
+      <div class="about-b">
+        <p>Меня зовут <span class="hl">SAN4CK</span> — Python-разработчик с фокусом на автоматизацию, Telegram-боты и интеграцию с AI-моделями.</p>
+        <p>Создаю инструменты: от OSINT-ботов и парсеров до AI-интерфейсов. Параллельно занимаюсь <span class="hl">видеомонтажом</span> — работаю с темпом, ритмом и цветом.</p>
+        <p>На стыке кода и творчества. Без лишнего шума.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CODE WIDGET -->
+  <div class="code-wrap rv fs" style="transition-delay:.1s">
+    <div class="code-info">
+      <h3>stack.config</h3>
+      <div class="ir"><span class="ik">Язык</span><span class="iv">Python 3.11+</span></div>
+      <div class="ir"><span class="ik">Боты</span><span class="iv">aiogram · telethon</span></div>
+      <div class="ir"><span class="ik">AI</span><span class="badge badge-r">Groq · OpenAI</span></div>
+      <div class="ir"><span class="ik">Монтаж</span><span class="badge badge-g">Premiere · CapCut</span></div>
+      <div class="ir"><span class="ik">Deploy</span><span class="iv">Termux · Linux</span></div>
+      <div class="ir">
+        <span class="ik">GitHub</span>
+        <a href="https://github.com/san4ckdvlp" target="_blank" style="color:var(--muted2);text-decoration:none;display:flex;align-items:center;gap:6px;font-size:12px;transition:color .3s" onmouseenter="this.style.color='var(--white)'" onmouseleave="this.style.color='var(--muted2)'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          san4ckdvlp
+        </a>
+      </div>
+    </div>
+    <div class="code-term">
+      <div class="term-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="term-title">san4ck_site.py — live</span>
+      </div>
+      <div class="code-out" id="codeOut"></div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat rv fs" style="transition-delay:.1s"><div class="sn">∞</div><div class="sl">Строк кода</div></div>
+    <div class="stat rv fs" style="transition-delay:.2s"><div class="sn">AI</div><div class="sl">Интеграция</div></div>
+    <div class="stat rv fs" style="transition-delay:.3s"><div class="sn">24/7</div><div class="sl">Режим работы</div></div>
+  </div>
+</section>
+
+<div class="dv"></div>
+
+<!-- LIBS MARQUEE -->
+<div class="libs-sec"><div class="libs-mq" id="lmq"></div></div>
+
+<!-- SKILLS -->
+<section class="skills-sec">
+  <div class="sec-lbl">02 — Навыки</div>
+  <div class="skills-list">
+    <div class="sk-row rv fb"><span class="sk-n">Python</span><span class="sk-t">Core · 3.11+</span></div>
+    <div class="sk-row rv fb" style="transition-delay:.06s"><span class="sk-n">Telegram Bots</span><span class="sk-t">Aiogram · Telethon</span></div>
+    <div class="sk-row rv fb" style="transition-delay:.12s"><span class="sk-n">AI Integration</span><span class="sk-t">OpenAI · Groq · Anthropic</span></div>
+    <div class="sk-row rv fb" style="transition-delay:.18s"><span class="sk-n">Automation</span><span class="sk-t">Scripts · Parsers · Bots</span></div>
+    <div class="sk-row rv fb" style="transition-delay:.24s"><span class="sk-n">OSINT Tools</span><span class="sk-t">Data Collection</span></div>
+    <div class="sk-row red rv fb" style="transition-delay:.30s"><span class="sk-n">Video Editing</span><span class="sk-t">Монтаж · Color Grade</span></div>
+    <div class="sk-row rv fb" style="transition-delay:.36s"><span class="sk-n">Web Dev</span><span class="sk-t">HTML · CSS · JS</span></div>
+  </div>
+</section>
+
+<div class="dv"></div>
+
+<!-- QUOTE -->
+<div class="qt-sec">
+  <div class="rv fs">
+    <p class="qt-big"><span class="dim">Не просто</span> пишу код —<br><span class="dim">строю</span> системы <span class="dim">которые</span> думают.</p>
+  </div>
+</div>
+
+<div class="dv"></div>
+
+<!-- CONTACT -->
+<section class="ct-sec">
+  <div class="orb" style="width:500px;height:500px;bottom:-150px;left:-100px"></div>
+  <div class="sec-lbl">03 — Связаться</div>
+  <div class="ct-in">
+    <div class="rv fl"><h2 class="ct-h">Напиши<br>мне.</h2></div>
+    <div class="ct-links rv fr" style="transition-delay:.2s">
+      <a class="ct-a" href="https://t.me/san4ck" target="_blank">Telegram @san4ck</a>
+      <a class="ct-a" href="https://github.com/san4ckdvlp" target="_blank">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        GitHub san4ckdvlp
+      </a>
+      <a class="ct-a" href="https://t.me/san4ck" target="_blank">Открыт к проектам</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span>SAN4CK © 2025</span>
+  <span>Python · AI · Video</span>
+</footer>
+
+<script>
+/* CURSOR */
+const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function raf(){rx+=(mx-rx)*.13;ry+=(my-ry)*.13;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(raf)})();
+document.querySelectorAll('a,button,.sk-row,.stat,.lc').forEach(el=>{
+  el.addEventListener('mouseenter',()=>ring.classList.add('big'));
+  el.addEventListener('mouseleave',()=>ring.classList.remove('big'));
+});
+
+/* TICKER BOTTOM */
+const tItems=['aiogram','telethon','openai','anthropic','groq','pillow','requests','fastapi','beautifulsoup4','selenium','playwright','pandas','numpy','spiderfoot','python-telegram-bot','ffmpeg','premiere pro','capcut','aiohttp','pydantic','sqlalchemy','docker','termux'];
+const tt=document.getElementById('ttk');
+[...tItems,...tItems].forEach(t=>{const d=document.createElement('div');d.className='ti';d.innerHTML=`<span class="td"></span>${t}`;tt.appendChild(d)});
+
+/* LIBS MARQUEE */
+const libs=[
+  {i:'🐍',n:'Python'},{i:'🤖',n:'aiogram'},{i:'🔗',n:'Telethon'},
+  {i:'✨',n:'OpenAI'},{i:'⚡',n:'Groq'},{i:'🧩',n:'Anthropic'},
+  {i:'🕷',n:'Selenium'},{i:'🎭',n:'Playwright'},{i:'🌐',n:'FastAPI'},
+  {i:'🖼',n:'Pillow'},{i:'📊',n:'Pandas'},{i:'🎬',n:'Premiere Pro'},
+  {i:'✂️',n:'CapCut'},{i:'🔍',n:'SpiderFoot'},{i:'🐳',n:'Docker'},
+  {i:'📱',n:'Termux'},{i:'🎨',n:'Color Grade'}
+];
+const lm=document.getElementById('lmq');
+[...libs,...libs,...libs,...libs].forEach(l=>{const d=document.createElement('div');d.className='lc';d.innerHTML=`<span class="lc-icon">${l.i}</span><b>${l.n}</b>`;lm.appendChild(d)});
+
+/* BIDIRECTIONAL REVEAL */
+const rvs=document.querySelectorAll('.rv');
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.remove('off');
+      e.target.classList.add('on');
+    } else {
+      if(e.target.classList.contains('on')){
+        e.target.classList.remove('on');
+        e.target.classList.add('off');
+      }
+    }
+  });
+},{threshold:0.12});
+rvs.forEach(el=>observer.observe(el));
+
+/* PARALLAX */
+window.addEventListener('scroll',()=>{
+  const y=window.scrollY;
+  const bg=document.querySelector('.hero-bg');
+  if(bg) bg.style.transform=`translate(-50%,calc(-50% + ${y*.28}px))`;
+});
+
+/* ANIMATED CODE TERMINAL */
+const codeLines=[
+  [{t:'cm',v:'# san4ck portfolio — live process'}],
+  [],
+  [{t:'kw',v:'import'},{t:'op',v:' '},{t:'var',v:'asyncio'}],
+  [{t:'kw',v:'import'},{t:'op',v:' '},{t:'var',v:'aiogram'},{t:'op',v:' '},{t:'cm',v:'# telegram'}],
+  [{t:'kw',v:'from'},{t:'op',v:' '},{t:'var',v:'groq'},{t:'op',v:' '},{t:'kw',v:'import'},{t:'op',v:' '},{t:'fn',v:'Groq'}],
+  [{t:'kw',v:'from'},{t:'op',v:' '},{t:'var',v:'anthropic'},{t:'op',v:' '},{t:'kw',v:'import'},{t:'op',v:' '},{t:'fn',v:'Anthropic'}],
+  [],
+  [{t:'cm',v:'# инициализация'}],
+  [{t:'var',v:'ai'},{t:'op',v:' = '},{t:'fn',v:'Groq'},{t:'op',v:'(api_key='},{t:'str',v:'"***"'},{t:'op',v:')'}],
+  [{t:'var',v:'bot'},{t:'op',v:' = '},{t:'fn',v:'Bot'},{t:'op',v:'(token='},{t:'str',v:'"san4ck"'},{t:'op',v:')'}],
+  [],
+  [{t:'kw',v:'async def'},{t:'op',v:' '},{t:'fn',v:'on_message'},{t:'op',v:'(msg):'}],
+  [{t:'op',v:'    '},{t:'cm',v:'# обработка сообщения'}],
+  [{t:'op',v:'    '},{t:'var',v:'reply'},{t:'op',v:' = '},{t:'kw',v:'await'},{t:'op',v:' '},{t:'fn',v:'ai.chat'},{t:'op',v:'(msg)'}],
+  [{t:'op',v:'    '},{t:'kw',v:'return'},{t:'op',v:' '},{t:'var',v:'reply'},{t:'op',v:'.'},{t:'fn',v:'text'}],
+  [],
+  [{t:'cm',v:'# запуск...'}],
+  [{t:'fn',v:'asyncio'},{t:'op',v:'.'},{t:'fn',v:'run'},{t:'op',v:'('},{t:'fn',v:'main'},{t:'op',v:'())'}],
+];
+
+const co=document.getElementById('codeOut');
+let li=0;const rendered=[];let cursorSpan=null;
+
+function buildLineEl(tokens,num){
+  const row=document.createElement('div');row.className='cl';
+  const ln=document.createElement('span');ln.className='ln-n';ln.textContent=num;row.appendChild(ln);
+  if(!tokens||tokens.length===0){const s=document.createElement('span');s.innerHTML=' ';row.appendChild(s);}
+  else tokens.forEach(tok=>{const s=document.createElement('span');s.className=tok.t==='op'?'op':tok.t;s.textContent=tok.v;row.appendChild(s)});
+  return row;
+}
+
+function nextLine(){
+  if(li>=codeLines.length){li=0;co.innerHTML='';rendered.length=0;}
+  const row=buildLineEl(codeLines[li],li+1);
+  if(cursorSpan){cursorSpan.remove();}
+  const c=document.createElement('span');c.className='tcur';cursorSpan=c;row.appendChild(c);
+  co.appendChild(row);rendered.push(row);
+  if(rendered.length>11){
+    const old=rendered.shift();
+    old.style.transition='opacity .4s';old.style.opacity='0';
+    setTimeout(()=>old.remove(),400);
+  }
+  li++;
+  setTimeout(nextLine,li<codeLines.length?270:900);
+}
+setTimeout(nextLine,1400);
+</script>
+</body>
+</html>
